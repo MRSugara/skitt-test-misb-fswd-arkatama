@@ -15,7 +15,6 @@ class UserController extends Controller
      public function store(Request $request)
      {
         // Ambil data dari input pengguna
-        // Ambil data dari input pengguna
         $inputData = strtoupper(trim($request->input('data')));
 
         // Hapus kata "TAHUN," "THN," dan "TH" dari input data
