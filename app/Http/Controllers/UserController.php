@@ -14,40 +14,43 @@ class UserController extends Controller
 
      public function store(Request $request)
      {
-    // Ambil data dari input pengguna
-    $inputData = strtoupper(trim($request->input('data')));
+        // Ambil data dari input pengguna
+        // Ambil data dari input pengguna
+        $inputData = strtoupper(trim($request->input('data')));
 
-    // Ekstrak usia terlebih dahulu menggunakan regex
-    $usia = $this->extractUsia($inputData);
+        // Hapus kata "TAHUN," "THN," dan "TH" dari input data
+        $inputDataWithoutTahun = trim(preg_replace('/\b(?:TAHUN|THN|TH)\b/i', '', $inputData));
 
-    // Hapus usia dari input data
-    $inputDataWithoutUsia = trim(preg_replace('/\b(\d+)\s*(?:TAHUN|THN|TH)\b/i', '', $inputData));
+        // Ekstrak usia terlebih dahulu menggunakan regex
+        $usia = $this->extractUsia($inputDataWithoutTahun);
 
-    // Pecah data menjadi array
-    $data = explode(' ', $inputDataWithoutUsia);
+        // Pisahkan input menjadi nama dan kota menggunakan regex
+        $pattern = '/^(.*?)\s*(\d+)\s*(.*?)$/i';
+        if (preg_match($pattern, $inputDataWithoutTahun, $matches)) {
+        $nama = $matches[1];
+        $usia = $matches[2];
+        $kota = $matches[3];
+        } else {
+        $nama = $inputDataWithoutTahun;
+        $usia = null;
+        $kota = null;
+        }
 
-    // Ambil Nama
-    $nama = implode(' ', array_slice($data, 0, -2));
+        // Simpan data ke dalam database
+        $user = new User();
+        $user->name = strtoupper(trim($nama));
+        $user->age = $usia;
+        $user->city = strtoupper(trim($kota));
+        $user->save();
 
-    // Ambil Kota
-    $kota = implode(' ', array_slice($data, 2, 3));
+        return "Data berhasil disimpan ke dalam database.";
+        }
 
-    // Simpan data ke dalam database
-    $user = new User();
-    $user->name = strtoupper($nama);
-    $user->age = $usia;
-    $user->city = strtoupper($kota);
-    $user->save();
+        private function extractUsia($data)
+        {
+        $pattern = '/\b(\d+)\b/';
+        preg_match($pattern, $data, $matches);
 
-    return "Data berhasil disimpan ke dalam database.";
-     }
-
-     // Fungsi untuk mengambil usia menggunakan regex
-     private function extractUsia($data)
-     {
-     $pattern = '/\b(\d+)\s*(?:TAHUN|THN|TH)\b/i';
-     preg_match($pattern, $data, $matches);
-
-     return isset($matches[1]) ? (int)$matches[1] : null;
-     }
+        return isset($matches[1]) ? (int)$matches[1] : null;
+        }
 }
